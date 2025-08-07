@@ -1112,9 +1112,9 @@ useEffect(() => {
                 </div>
                 );
               )}()
-              )}
-            </div>
-          )}
+            )}
+          </div>
+        )}
 
           {activeTab === 'analytics' && (
             <div>
