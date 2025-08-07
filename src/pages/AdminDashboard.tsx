@@ -140,6 +140,7 @@ useEffect(() => {
       { event: '*', schema: 'public', table: 'user_sessions' },
       () => {
         fetchAndSubscribeActiveBookingSessions(); // Re-fetch on any change to user_sessions
+        fetchBookings();
       }
     )
     .subscribe();
@@ -251,20 +252,44 @@ useEffect(() => {
   };
 
   const fetchBookings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .order('created_at', { ascending: false });
+  try {
+    // 1. Fetch IDs of completed and confirmed booking sessions
+    const { data: completedAndConfirmedSessions, error: sessionsError } = await supabase
+      .from('user_sessions')
+      .select('booking_id')
+      .eq('session_type', 'booking')
+      .eq('status', 'completed')
+      .not('confirmed_by', 'is', null); // Session is completed AND confirmed by an admin
 
-      if (error) throw error;
-      setBookings(data || []);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (sessionsError) throw sessionsError;
+
+    const completedAndConfirmedBookingIds = new Set(
+      completedAndConfirmedSessions
+        .map(session => session.booking_id)
+        .filter((id): id is string => id !== null) // Filter out nulls and ensure type is string[]
+    );
+
+    // 2. Fetch all bookings
+    const { data: allBookings, error: bookingsError } = await supabase
+      .from('bookings')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (bookingsError) throw bookingsError;
+
+    // 3. Filter bookings in memory to exclude those with completed and confirmed sessions
+    const filteredBookings = allBookings?.filter(booking =>
+      !completedAndConfirmedBookingIds.has(booking.id)
+    ) || [];
+    setBookings(filteredBookings);
+
+  } catch (error) {
+    console.error('Error fetching bookings:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const fetchRecentSessions = async () => {
     try {
