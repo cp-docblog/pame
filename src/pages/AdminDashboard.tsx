@@ -741,22 +741,32 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsCards.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center">
-              <div className={`${stat.color} p-3 rounded-lg`}>
-                <stat.icon className="w-6 h-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
-                <p className="text-sm text-green-600">{stat.change}</p>
-              </div>
-            </div>
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  {statsCards
+    .filter(stat => {
+      // If user is staff, hide 'Monthly Revenue' and 'Active Members'
+      if (user.role === 'staff') {
+        return stat.title !== 'Monthly Revenue' && stat.title !== 'Active Members';
+      }
+      // Otherwise, show all cards
+      return true;
+    })
+    .map((stat, index) => (
+      <div key={index} className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex items-center">
+          <div className={`${stat.color} p-3 rounded-lg`}>
+            <stat.icon className="w-6 h-6 text-white" />
           </div>
-        ))}
+          <div className="ml-4">
+            <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+            <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
+            <p className="text-sm text-green-600">{stat.change}</p>
+          </div>
+        </div>
       </div>
+    ))}
+</div>
+
 
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-sm">
