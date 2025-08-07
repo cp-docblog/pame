@@ -915,17 +915,21 @@ const AdminClientProfilePage: React.FC = () => {
                           
                           <div className="space-y-1 text-sm text-gray-600">
                             {session.session_type === 'booking' && session.booking && (
-                              <div className="mb-2 p-2 bg-blue-50 rounded">
-                                <p><span className="font-medium">Client:</span> {session.booking.customer_name}</p>
-                                <p><span className="font-medium">Booking:</span> {session.booking.workspace_type}</p>
-                                <p><span className="font-medium">Date:</span> {new Date(session.booking.date).toLocaleDateString()}</p>
-                                <p><span className="font-medium">Time:</span> {session.booking.time_slot}</p>
-                              </div>
-                            )}
-                            
-                            <div>
-                                  <p><span className="font-medium">Price:</span> E£{session.booking.total_price}</p>
-                              <p><span className="font-medium">Started:</span> {new Date(session.start_time).toLocaleString()}</p>
+  <div className="mb-2 p-2 bg-blue-50 rounded">
+    <p><span className="font-medium">Client:</span> {session.booking.customer_name}</p>
+    <p><span className="font-medium">Booking:</span> {session.booking.workspace_type}</p>
+    <p><span className="font-medium">Date:</span> {new Date(session.booking.date).toLocaleDateString()}</p>
+    <p><span className="font-medium">Time:</span> {session.booking.time_slot}</p>
+    {/* Moved the price line here, inside the conditional block */}
+    {session.booking.total_price !== undefined && (
+      <p><span className="font-medium">Price:</span> E£{session.booking.total_price}</p>
+    )}
+  </div>
+)}
+
+<div>
+  {/* The price line is removed from here */}
+  <p><span className="font-medium">Started:</span> {new Date(session.start_time).toLocaleString()}</p>
                               {session.end_time && (
                                 <p><span className="font-medium">Ended:</span> {new Date(session.end_time).toLocaleString()}</p>
                               )}
