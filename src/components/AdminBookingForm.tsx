@@ -8,6 +8,13 @@ import { usePricing } from '../hooks/usePricing';
 
 // Helper function to convert duration to hours
 const convertDurationToHours = (duration: string, totalSlots: number): number => {
+  // Handle new duration format: "1 hour", "2 hours", etc.
+  const hourMatch = duration.match(/(\d+)\s*hours?/i);
+  if (hourMatch) {
+    return parseInt(hourMatch[1]);
+  }
+  
+  // Fallback for legacy formats
   switch (duration) {
     case '1-hour':
       return 1;
@@ -16,7 +23,7 @@ const convertDurationToHours = (duration: string, totalSlots: number): number =>
     case '4-hours':
       return 4;
     case '1-day':
-      return totalSlots; // Full day = all available hourly slots
+      return totalSlots;
     case '1-week':
       return totalSlots * 7;
     case '1-month':
@@ -385,7 +392,10 @@ const createNewClient = async () => {
   const getHourlySlotsForBooking = (startSlot: string, durationHours: number, allSlots: string[]): string[] => {
     const startIndex = allSlots.indexOf(startSlot);
     if (startIndex === -1) return [];
-    return allSlots.slice(startIndex, startIndex + durationHours);
+    
+    // Ensure we don't go beyond available slots
+    const endIndex = Math.min(startIndex + durationHours, allSlots.length);
+    return allSlots.slice(startIndex, endIndex);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
