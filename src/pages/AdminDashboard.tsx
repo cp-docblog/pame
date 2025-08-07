@@ -26,7 +26,8 @@ import {
   Plus,
   Clock,
   Play,
-  Percent
+  Percent,
+  Search
 } from 'lucide-react';
 
 interface Booking {
@@ -856,6 +857,34 @@ useEffect(() => {
                   <p className="text-gray-500">No bookings found.</p>
                 </div>
               ) : (
+                    // Filter bookings based on searchTerm
+      (() => {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        const filteredBookings = bookings.filter(booking => {
+          return (
+            booking.customer_name.toLowerCase().includes(lowerCaseSearchTerm) ||
+            booking.customer_email.toLowerCase().includes(lowerCaseSearchTerm) ||
+            (booking.customer_phone && booking.customer_phone.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            (booking.customer_whatsapp && booking.customer_whatsapp.toLowerCase().includes(lowerCaseSearchTerm)) ||
+            booking.workspace_type.toLowerCase().includes(lowerCaseSearchTerm) ||
+            booking.status.toLowerCase().includes(lowerCaseSearchTerm) ||
+            booking.time_slot.toLowerCase().includes(lowerCaseSearchTerm) ||
+            new Date(booking.date).toLocaleDateString().toLowerCase().includes(lowerCaseSearchTerm) ||
+            booking.duration.toLowerCase().includes(lowerCaseSearchTerm) ||
+            booking.total_price.toString().includes(lowerCaseSearchTerm) ||
+            (booking.confirmation_code && booking.confirmation_code.toLowerCase().includes(lowerCaseSearchTerm))
+          );
+        });
+
+        if (filteredBookings.length === 0) {
+          return (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No bookings match your search criteria.</p>
+            </div>
+          );
+        }
+
+        return(
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -870,8 +899,8 @@ useEffect(() => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {bookings.map((booking) => (
-                        <React.Fragment key={booking.id}>
+                      {filteredBookings.map((booking) => ( // <--- Use filteredBookings here
+                  <React.Fragment key={booking.id}>
                           <tr>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
