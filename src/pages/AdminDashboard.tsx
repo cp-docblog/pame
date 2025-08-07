@@ -76,6 +76,7 @@ const AdminDashboard: React.FC = () => {
   const [settingsTab, setSettingsTab] = useState<'general' | 'discounts'>('general');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeBookingSessions, setActiveBookingSessions] = useState<Set<string>>(new Set());
   const [showAdminBookingForm, setShowAdminBookingForm] = useState(false);
