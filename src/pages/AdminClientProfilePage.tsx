@@ -921,7 +921,7 @@ const AdminClientProfilePage: React.FC = () => {
     <p><span className="font-medium">Date:</span> {new Date(session.booking.date).toLocaleDateString()}</p>
     <p><span className="font-medium">Time:</span> {session.booking.time_slot}</p>
     {/* Moved the price line here, inside the conditional block */}
-    {session.booking.total_price !== undefined && (
+    {session.booking?.total_price != null && (
       <p><span className="font-medium">Price:</span> E£{session.booking.total_price}</p>
     )}
   </div>
