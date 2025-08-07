@@ -902,14 +902,21 @@ useEffect(() => {
                                 </>
                               )}
                               {booking.status === 'confirmed' && (
-                                <button
-                                  onClick={() => startBookingSession(booking.id)}
-                                  className="text-blue-600 hover:text-blue-900"
-                                  title="Start booking session"
-                                >
-                                  <Play className="w-4 h-4" />
-                                </button>
-                              )}
+  activeBookingSessions.has(booking.id) ? (
+    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+      Session Active
+    </span>
+  ) : (
+    <button
+      onClick={() => startBookingSession(booking.id)}
+      className="text-blue-600 hover:text-blue-900"
+      title="Start booking session"
+    >
+      <Play className="w-4 h-4" />
+    </button>
+  )
+)}
+
                               {canEditBooking(booking.status) && (
                                 <button
                                   onClick={() => {
