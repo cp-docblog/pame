@@ -107,6 +107,49 @@ const AdminDashboard: React.FC = () => {
     fetchHourlySlots();
   }, []);
 
+// Add this new useEffect block
+useEffect(() => {
+  const fetchAndSubscribeActiveBookingSessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .select('booking_id')
+        .eq('session_type', 'booking')
+        .eq('status', 'active');
+
+      if (error) throw error;
+
+      const activeIds = new Set<string>();
+      data?.forEach(session => {
+        if (session.booking_id) {
+          activeIds.add(session.booking_id);
+        }
+      });
+      setActiveBookingSessions(activeIds);
+    } catch (error) {
+      console.error('Error fetching active booking sessions:', error);
+    }
+  };
+
+  fetchAndSubscribeActiveBookingSessions(); // Initial fetch
+
+  // Set up real-time subscription for user_sessions
+  const sessionsSubscription = supabase
+    .channel('active_booking_sessions_channel') // Use a unique channel name
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'user_sessions' },
+      () => {
+        fetchAndSubscribeActiveBookingSessions(); // Re-fetch on any change to user_sessions
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(sessionsSubscription); // Clean up subscription on unmount
+  };
+}, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+
+  
   // Load settings when content is loaded and settings are available
   useEffect(() => {
     if (!contentLoading && settings && Object.keys(settings).length > 0) {
