@@ -854,38 +854,48 @@ const createNewClient = async () => {
             {formData.workspaceType && formData.duration && (
               <div className="bg-gray-50 p-6 rounded-lg">
                 <h3 className="text-lg font-semibold text-black mb-2">Price Summary</h3>
-                {(() => {
-                  const breakdown = getPriceBreakdown(formData.workspaceType, formData.duration);
-                  return breakdown ? (
-                    <div className="space-y-2">
-                      {breakdown.hasDiscount && (
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500">Original Price:</span>
-                          <span className="text-gray-500 line-through">E£{breakdown.originalPrice}</span>
+                {formData.duration === 'undefined' ? (
+                  <div className="space-y-2">
+                    <p className="text-gray-600">Price will be calculated hourly upon session end.</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Current Hourly Rate:</span>
+                      <span className="text-2xl font-bold text-yellow-600">E£{calculatePrice()}/hour</span>
+                    </div>
+                  </div>
+                ) : (
+                  (() => {
+                    const breakdown = getPriceBreakdown(formData.workspaceType, formData.duration);
+                    return breakdown ? (
+                      <div className="space-y-2">
+                        {breakdown.hasDiscount && (
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-500">Original Price:</span>
+                            <span className="text-gray-500 line-through">E£{breakdown.originalPrice}</span>
+                          </div>
+                        )}
+                        {breakdown.hasDiscount && (
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-green-600">Discount:</span>
+                            <span className="text-green-600">-E£{breakdown.discount.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Total Cost:</span>
+                          <span className="text-2xl font-bold text-yellow-600">E£{breakdown.discountedPrice}</span>
                         </div>
-                      )}
-                      {breakdown.hasDiscount && (
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-green-600">Discount:</span>
-                          <span className="text-green-600">-E£{breakdown.discount.toFixed(2)}</span>
-                        </div>
-                      )}
+                      </div>
+                    ) : (
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Total Cost:</span>
-                        <span className="text-2xl font-bold text-yellow-600">E£{breakdown.discountedPrice}</span>
+                        <span className="text-2xl font-bold text-yellow-600">E£{calculatePrice()}</span>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Total Cost:</span>
-                      <span className="text-2xl font-bold text-yellow-600">E£{calculatePrice()}</span>
-                    </div>
-                  );
-                })()}
+                    );
+                  })()
+                )}
                 {formData.timeSlot && (
                   <div className="mt-2 text-sm text-gray-600">
                     <p>Workspace: {formData.workspaceType}</p>
-                    <p>Duration: {durationOptionsWithPricing.find(d => d.value === formData.duration)?.label}</p>
+                    <p>Duration: {formData.duration === 'undefined' ? 'Undefined' : durationOptionsWithPricing.find(d => d.value === formData.duration)?.label}</p>
                     <p>Time: {formData.timeSlot}</p>
                   </div>
                 )}
