@@ -464,7 +464,7 @@ const createNewClient = async () => {
   };
 
 
-  return (
+   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b">
@@ -483,12 +483,12 @@ const createNewClient = async () => {
                 Select Workspace Type
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {workspaceTypes.length === 0 ? (
+                {allWorkspaceTypes.length === 0 ? ( // Use allWorkspaceTypes from hook
                   <div className="col-span-full text-center py-8">
                     <p className="text-gray-500">No workspace types available.</p>
                   </div>
                 ) : (
-                  workspaceTypes.map((workspace) => (
+                  allWorkspaceTypes.map((workspace) => ( // Use allWorkspaceTypes from hook
                     <label
                       key={workspace.name}
                       className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-300 block ${
@@ -552,6 +552,7 @@ const createNewClient = async () => {
                       {duration.hasDiscount && ` (was E£${duration.originalPrice})`}
                     </option>
                   ))}
+                  <option value="undefined">Undefined</option> {/* New option */}
                 </select>
               </div>
             </div>
@@ -566,16 +567,19 @@ const createNewClient = async () => {
                 name="timeSlot"
                 value={formData.timeSlot}
                 onChange={handleChange}
-                required
-                disabled={!formData.workspaceType || !formData.date || !formData.duration || checkingAvailability}
+                required={formData.duration !== 'undefined'} // Not required for undefined duration
+                disabled={!formData.workspaceType || !formData.date || formData.duration === 'undefined' || checkingAvailability} // Disabled for undefined duration
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
               >
                 <option value="">
-                  {!formData.workspaceType || !formData.date || !formData.duration
+                  {formData.duration === 'undefined'
+                    ? 'Not applicable for undefined duration'
+                    : !formData.workspaceType || !formData.date || !formData.duration
                     ? 'Select workspace, date, and duration first'
                     : checkingAvailability
                     ? 'Checking availability...'
-                    : 'Choose available time slot'}
+                    : 'Choose available time slot'
+                  }
                 </option>
                 {hourlySlots
                   .filter(slot => !bookedSlots.includes(slot))
