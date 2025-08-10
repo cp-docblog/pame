@@ -117,6 +117,10 @@ const AdminBookingForm: React.FC<{
     onClose();
   };
 
+  useEffect(() => {
+    setWorkspaceTypes(allWorkspaceTypes);
+  }, [allWorkspaceTypes]);
+  
   const [durations, setDurations] = useState([
     { value: '1 hour', label: '1 Hour', multiplier: 1 },
     { value: '2 hours', label: '2 Hours', multiplier: 2 },
