@@ -126,6 +126,17 @@ export const usePricing = () => {
     const workspace = workspaceTypes.find(w => w.name === workspaceTypeName);
     if (!workspace) return null;
 
+    if (duration === 'undefined') {
+      return {
+        originalPrice: workspace.price,
+        discountedPrice: workspace.price,
+        discount: 0,
+        hasDiscount: false,
+        workspace: workspace,
+        isUndefinedDuration: true
+      };
+    }
+
     const durationOption = getDurationOptions(workspaceTypeName).find(d => d.value === duration);
     if (!durationOption) return null;
 
@@ -134,7 +145,8 @@ export const usePricing = () => {
       discountedPrice: durationOption.discountedPrice,
       discount: durationOption.discount,
       hasDiscount: durationOption.hasDiscount,
-      workspace: workspace
+      workspace: workspace,
+      isUndefinedDuration: false
     };
   };
 

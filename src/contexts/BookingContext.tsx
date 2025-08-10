@@ -110,26 +110,31 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         .map(slot => slot.trim())
         .filter(Boolean);
 
-      const { data: existingBookings, error: fetchError } = await supabase
-        .from('bookings')
-        .select('time_slot, duration, desk_number')
-        .eq('workspace_type', bookingData.workspaceType)
-        .eq('date', bookingData.date)
-        .in('status', ['pending', 'confirmed', 'code_sent']);
+      let assignedDeskNumber = 1; // Default desk for undefined duration
 
-      if (fetchError) throw fetchError;
+      // Only check availability for defined duration bookings
+      if (bookingData.duration !== 'undefined') {
+        const { data: existingBookings, error: fetchError } = await supabase
+          .from('bookings')
+          .select('time_slot, duration, desk_number')
+          .eq('workspace_type', bookingData.workspaceType)
+          .eq('date', bookingData.date)
+          .in('status', ['pending', 'confirmed', 'code_sent']);
 
-      const assignedDeskNumber = findAvailableDesk(
-        bookingData.timeSlot,
-        bookingData.duration,
-        bookingData.date,
-        existingBookings || [],
-        hourlySlots,
-        totalDesks
-      );
+        if (fetchError) throw fetchError;
 
-      if (!assignedDeskNumber) {
-        throw new Error('No available desk found for the selected time slot and duration.');
+        assignedDeskNumber = findAvailableDesk(
+          bookingData.timeSlot,
+          bookingData.duration,
+          bookingData.date,
+          existingBookings || [],
+          hourlySlots,
+          totalDesks
+        );
+
+        if (!assignedDeskNumber) {
+          throw new Error('No available desk found for the selected time slot and duration.');
+        }
       }
 
       const { data, error } = await supabase
@@ -137,7 +142,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
         .insert({
           workspace_type: bookingData.workspaceType,
           date: bookingData.date,
-          time_slot: bookingData.timeSlot,
+          time_slot: bookingData.timeSlot || 'undefined',
           duration: bookingData.duration,
           customer_name: bookingData.customerName,
           customer_email: bookingData.customerEmail,

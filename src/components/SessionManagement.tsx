@@ -327,11 +327,37 @@ const SessionManagement: React.FC = () => {
       // For subscription sessions, deduct actual minutes from hours
       let hoursDeducted = 0;
       let minutesDeducted = 0;
+      let finalPrice = session.booking?.total_price || 0;
       
       if (session.session_type === 'subscription') {
         // Convert minutes to decimal hours for subscription deduction
         hoursDeducted = durationMinutes / 60;
         minutesDeducted = durationMinutes;
+      } else if (session.session_type === 'booking' && session.booking?.duration === 'undefined') {
+        // Calculate price for undefined duration booking
+        const { data: workspaceData, error: workspaceError } = await supabase
+          .from('workspace_types')
+          .select('price')
+          .eq('name', session.booking.workspace_type)
+          .single();
+
+        if (workspaceError) throw workspaceError;
+
+        const hourlyRate = workspaceData.price;
+        const actualHours = Math.ceil(durationMinutes / 60); // Round up to nearest hour
+        finalPrice = hourlyRate * actualHours;
+
+        // Update the booking with the calculated price
+        const { error: bookingUpdateError } = await supabase
+          .from('bookings')
+          .update({
+            total_price: finalPrice,
+            duration: `${actualHours} hour${actualHours !== 1 ? 's' : ''}`,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', session.booking_id);
+
+        if (bookingUpdateError) throw bookingUpdateError;
       }
 
       // Update session

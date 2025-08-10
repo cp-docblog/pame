@@ -911,7 +911,7 @@ const createNewClient = async () => {
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || bookedSlots.length === hourlySlots.length}
+                disabled={isSubmitting || (formData.duration !== 'undefined' && bookedSlots.length === hourlySlots.length)}
                 className="bg-yellow-500 text-black px-6 py-2 rounded-md font-semibold hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
