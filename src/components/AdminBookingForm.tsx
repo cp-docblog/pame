@@ -435,6 +435,10 @@ const createNewClient = async () => {
   };
 
   const calculatePrice = () => {
+    if (formData.duration === 'undefined') {
+      const selectedWorkspace = allWorkspaceTypes.find(w => w.name === formData.workspaceType);
+      return selectedWorkspace ? selectedWorkspace.price : 0; // Return base hourly price
+    }
     if (!formData.workspaceType || !formData.duration) return 0;
     return calculateDiscountedPrice(formData.workspaceType, formData.duration);
   };
@@ -444,7 +448,7 @@ const createNewClient = async () => {
     setIsSubmitting(true);
 
     try {
-      const totalPrice = calculatePrice();
+      const totalPrice = formData.duration === 'undefined' ? 0 : calculatePrice(); // Initial price is 0 for undefined duration
       const bookingData = { ...formData, totalPrice };
       await createAdminBooking(bookingData);
 
