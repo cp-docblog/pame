@@ -47,7 +47,6 @@ const AdminBookingForm: React.FC<{
 }> = ({ onClose, onSuccess }) => {
   const { createAdminBooking } = useBooking();
   const { getDurationOptions, calculatePrice: calculateDiscountedPrice, getPriceBreakdown, workspaceTypes: allWorkspaceTypes } = usePricing();
-  const [workspaceTypes, setWorkspaceTypes] = useState([]);
   const [hourlySlots, setHourlySlots] = useState<string[]>([]);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
