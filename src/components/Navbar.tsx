@@ -63,10 +63,6 @@ const Navbar: React.FC = () => {
                     My Account
                   </Link>
                 )}
-                {user && (user.role === 'admin' || user.role === 'staff') && (
-                  <Link to="/admin" className="text-yellow-500 hover:text-yellow-600 text-sm">
-                    {user.role === 'admin' ? 'Admin' : 'Dashboard'}
-                  </Link>
                 )}
               </div>
             </div>
