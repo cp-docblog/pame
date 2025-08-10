@@ -15,6 +15,18 @@ const convertDurationToHours = (duration: string, totalSlots: number): number =>
   }
   
   // Fallback for legacy formats
+  // Handle undefined duration
+  if (duration === 'undefined') {
+    return 0; // No fixed duration
+  }
+  
+  // Handle new duration format: "1 hour", "2 hours", etc.
+  const hourMatch = duration.match(/(\d+)\s*hours?/i);
+  if (hourMatch) {
+    return parseInt(hourMatch[1]);
+  }
+  
+  // Fallback for legacy formats
   switch (duration) {
     case '1-hour':
       return 1;
@@ -167,7 +179,7 @@ const AdminBookingForm: React.FC<{
   }, []);
 
   useEffect(() => {
-    if (formData.workspaceType && formData.date && formData.duration) {
+    if (formData.workspaceType && formData.date && formData.duration && formData.duration !== 'undefined') {
       fetchBookedSlots();
     } else {
       setBookedSlots([]);
@@ -411,7 +423,14 @@ const createNewClient = async () => {
       return;
     }
     
-    if ((name === 'workspaceType' || name === 'date' || name === 'duration') && formData.timeSlot) {
+    // Special handling for undefined duration
+    if (name === 'duration' && value === 'undefined') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        timeSlot: 'undefined' // Set special value for undefined duration
+      }));
+    } else if ((name === 'workspaceType' || name === 'date' || name === 'duration') && formData.timeSlot) {
       setFormData((prev) => ({
         ...prev,
         [name]: value,
@@ -426,6 +445,11 @@ const createNewClient = async () => {
   };
 
   const calculatePrice = () => {
+    if (formData.duration === 'undefined') {
+      // Return base hourly price for undefined duration
+      const selectedWorkspace = workspaceTypes.find(w => w.name === formData.workspaceType);
+      return selectedWorkspace ? selectedWorkspace.price : 0;
+    }
     if (!formData.workspaceType || !formData.duration) return 0;
     return calculateDiscountedPrice(formData.workspaceType, formData.duration);
   };
@@ -435,7 +459,7 @@ const createNewClient = async () => {
     setIsSubmitting(true);
 
     try {
-      const totalPrice = calculatePrice();
+      const totalPrice = formData.duration === 'undefined' ? 0 : calculatePrice();
       const bookingData = { ...formData, totalPrice };
       await createAdminBooking(bookingData);
 
@@ -828,6 +852,7 @@ const createNewClient = async () => {
                     disabled={!!selectedClient}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    <option value="undefined">Undefined Duration (Open Session)</option>
                   />
                 </div>
               </div>
