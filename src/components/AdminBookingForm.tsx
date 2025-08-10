@@ -402,20 +402,25 @@ const createNewClient = async () => {
     return allSlots.slice(startIndex, endIndex);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
-    // Auto-sync phone number with WhatsApp when WhatsApp changes
     if (name === 'customerWhatsapp') {
       setFormData(prev => ({
         ...prev,
         [name]: value,
-        customerPhone: value // Auto-sync phone with WhatsApp
+        customerPhone: value
       }));
       return;
     }
     
-    if ((name === 'workspaceType' || name === 'date' || name === 'duration') && formData.timeSlot) {
+    if (name === 'duration' && value === 'undefined') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        timeSlot: '' // Clear time slot for undefined duration
+      }));
+    } else if ((name === 'workspaceType' || name === 'date' || name === 'duration') && formData.timeSlot) {
       setFormData((prev) => ({
         ...prev,
         [name]: value,
