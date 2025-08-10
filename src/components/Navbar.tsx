@@ -63,7 +63,6 @@ const Navbar: React.FC = () => {
                     My Account
                   </Link>
                 )}
-                )}
               </div>
             </div>
 
