@@ -41,6 +41,11 @@ export const findAvailableDesk = (
   hourlySlots: string[],
   totalDesks: number
 ): number | null => {
+  // For undefined duration, just assign the first available desk
+  if (duration === 'undefined') {
+    return 1; // Default to desk 1 for open sessions
+  }
+  
   const requestedDurationHours = convertDurationToHours(duration, hourlySlots.length);
   const requiredSlots = getHourlySlotsForBooking(startSlot, requestedDurationHours, hourlySlots);
   

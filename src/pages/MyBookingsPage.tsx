@@ -472,10 +472,26 @@ const MyBookingsPage: React.FC = () => {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-600">Duration:</span>
-                                  <span>{booking.duration}</span>
+                                  <span>{booking.duration === 'undefined' ? 'Open Session' : booking.duration}</span>
                                 </div>
                                 {(() => {
                                   const breakdown = getPriceBreakdown(booking.workspace_type, booking.duration);
+                                  if (booking.duration === 'undefined') {
+                                    return (
+                                      <div className="space-y-1">
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">Session Type:</span>
+                                          <span className="text-orange-600 font-medium">Open Session</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">Total Price:</span>
+                                          <span className="font-semibold">
+                                            {booking.total_price === 0 ? 'To be calculated' : `E£${booking.total_price}`}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
                                   return breakdown ? (
                                     <div className="space-y-1">
                                       {breakdown.hasDiscount && (

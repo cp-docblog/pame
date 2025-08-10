@@ -919,10 +919,18 @@ const AdminClientProfilePage: React.FC = () => {
     <p><span className="font-medium">Client:</span> {session.booking.customer_name}</p>
     <p><span className="font-medium">Booking:</span> {session.booking.workspace_type}</p>
     <p><span className="font-medium">Date:</span> {new Date(session.booking.date).toLocaleDateString()}</p>
-    <p><span className="font-medium">Time:</span> {session.booking.time_slot}</p>
+    {session.booking.time_slot !== 'undefined' && (
+      <p><span className="font-medium">Time:</span> {session.booking.time_slot}</p>
+    )}
+    <p><span className="font-medium">Duration:</span> {
+      session.booking.duration === 'undefined' ? 'Open Session' : session.booking.duration
+    }</p>
     {/* Moved the price line here, inside the conditional block */}
-    {session.booking?.total_price != null && (
+    {session.booking?.total_price != null && session.booking.total_price > 0 && (
       <p><span className="font-medium">Price:</span> E£{session.booking.total_price}</p>
+    )}
+    {session.booking?.duration === 'undefined' && session.status === 'active' && (
+      <p className="text-orange-600 font-medium"><span className="font-medium">Status:</span> Price will be calculated when session ends</p>
     )}
   </div>
 )}
