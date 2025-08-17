@@ -145,12 +145,10 @@ const Navbar: React.FC = () => {
                     <User className="w-5 h-5 text-black mr-2" />
                     <span className="text-black">{user.name}</span>
                   </div>
-                  {user.role === 'admin' && (
-                    <Link to="/admin" className="text-yellow-500 block px-3 py-2">
-                      Admin Dashboard
-                    </Link>
-                  )}
                   {(user.role === 'admin' || user.role === 'staff') && (
+                    <Link to="/admin" className="text-yellow-500 block px-3 py-2">
+                      {user.role === 'admin' ? 'Admin Dashboard' : 'Dashboard'}
+                    </Link>
                   )}
                   {user.role === 'admin' && (
                     <Link to="/cms" className="text-yellow-500 block px-3 py-2">
