@@ -66,7 +66,7 @@ const BookingPage: React.FC = () => {
   const { setBookingData } = useBooking();
   const { user } = useAuth();
   const { getContent, getSetting, loading: contentLoading } = useContent();
-  const { getDurationOptions, calculatePrice: calculateDiscountedPrice, getPriceBreakdown } = usePricing();
+   const { getDurationOptions, calculatePrice: calculateDiscountedPrice, getPriceBreakdown } = usePricing();
   
   const [workspaceTypes, setWorkspaceTypes] = useState<WorkspaceType[]>([]);
   const [loading, setLoading] = useState(true);
