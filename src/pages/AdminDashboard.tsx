@@ -9,7 +9,7 @@ import AdminBookingForm from '../components/AdminBookingForm';
 import SubscriptionManagement from '../components/SubscriptionManagement';
 import SessionManagement from '../components/SessionManagement';
 import DurationDiscountManagement from '../components/DurationDiscountManagement';
-import { convertDurationToHours, getHourlySlotsForBooking } from 'src/utils/bookingHelpers';
+import { convertDurationToHours, getHourlySlotsForBooking } from '../src/utils/bookingHelpers';
 import toast from 'react-hot-toast';
 import { 
   Calendar, 
