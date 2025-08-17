@@ -509,7 +509,7 @@ const SessionManagement: React.FC = () => {
         <button
           onClick={() => {
             // Call the auto-end function manually for testing
-            fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auto-end-booking-sessions`, {
+            fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auto-end-cron`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
