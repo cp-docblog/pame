@@ -317,7 +317,7 @@ useEffect(() => {
           )
         `)
         .order('start_time', { ascending: false })
-        .limit(10);
+        .limit(35);
 
       if (error) throw error;
       setRecentSessions(data || []);
