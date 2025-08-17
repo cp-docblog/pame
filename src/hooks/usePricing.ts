@@ -1,3 +1,4 @@
+// src/hooks/usePricing.ts
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
@@ -31,6 +32,7 @@ export const usePricing = () => {
   const [workspaceTypes, setWorkspaceTypes] = useState<WorkspaceType[]>([]);
   const [durationDiscounts, setDurationDiscounts] = useState<DurationDiscount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [siteBookingDurations, setSiteBookingDurations] = useState<string[]>([]); // New state for site settings durations
 
   useEffect(() => {
     fetchData();
@@ -40,8 +42,7 @@ export const usePricing = () => {
     try {
       setLoading(true);
       
-      // Fetch workspace types and duration discounts in parallel
-      const [workspaceResult, discountResult] = await Promise.all([
+      const [workspaceResult, discountResult, siteSettingsResult] = await Promise.all([ // Added siteSettingsResult
         supabase
           .from('workspace_types')
           .select('id, name, price, price_unit')
@@ -50,14 +51,30 @@ export const usePricing = () => {
         supabase
           .from('duration_discounts')
           .select('*')
-          .eq('is_active', true)
+          .eq('is_active', true),
+        supabase // Fetch site settings for booking durations
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'booking_durations')
+          .single()
       ]);
 
       if (workspaceResult.error) throw workspaceResult.error;
       if (discountResult.error) throw discountResult.error;
+      if (siteSettingsResult.error && siteSettingsResult.error.code !== 'PGRST116') { // Allow no rows found
+        console.error('Error fetching site settings for booking durations:', siteSettingsResult.error);
+        // Don't throw, use default if setting not found
+      }
 
       setWorkspaceTypes(workspaceResult.data || []);
       setDurationDiscounts(discountResult.data || []);
+
+      // Parse site settings durations
+      const fetchedDurations = siteSettingsResult.data?.value
+        ? siteSettingsResult.data.value.split(',').map(d => d.trim()).filter(Boolean)
+        : ['1 hour', '2 hours', '3 hours', '4 hours', '5 hours', '6 hours']; // Default if not set
+      setSiteBookingDurations(fetchedDurations);
+
     } catch (error) {
       console.error('Error fetching pricing data:', error);
     } finally {
@@ -69,16 +86,14 @@ export const usePricing = () => {
     const workspace = workspaceTypes.find(w => w.name === workspaceTypeName);
     if (!workspace) return [];
 
-    const baseDurations = [
-      { value: '1 hour', label: '1 Hour', multiplier: 1 },
-      { value: '2 hours', label: '2 Hours', multiplier: 2 },
-      { value: '3 hours', label: '3 Hours', multiplier: 3 },
-      { value: '4 hours', label: '4 Hours', multiplier: 4 },
-      { value: '5 hours', label: '5 Hours', multiplier: 5 },
-      { value: '6 hours', label: '6 Hours', multiplier: 6 }
-    ];
+    // Use siteBookingDurations for baseDurations
+    const baseDurations = siteBookingDurations.map(durationStr => {
+      const match = durationStr.match(/(\d+)\s*hours?/i);
+      const multiplier = match ? parseInt(match[1]) : 1; // Default to 1 if parsing fails
+      return { value: durationStr, label: durationStr.charAt(0).toUpperCase() + durationStr.slice(1), multiplier };
+    });
 
-    return baseDurations.map(duration => {
+    const options = baseDurations.map(duration => {
       const originalPrice = workspace.price * duration.multiplier;
       const discount = durationDiscounts.find(
         d => d.workspace_type_id === workspace.id && d.duration === duration.value
@@ -90,12 +105,10 @@ export const usePricing = () => {
 
       if (discount) {
         if (discount.fixed_price !== null && discount.fixed_price > 0) {
-          // Use fixed price if set
           discountedPrice = discount.fixed_price;
           discountAmount = originalPrice - discount.fixed_price;
           hasDiscount = discountAmount > 0;
         } else if (discount.discount_percentage > 0) {
-          // Apply percentage discount
           discountAmount = (originalPrice * discount.discount_percentage) / 100;
           discountedPrice = originalPrice - discountAmount;
           hasDiscount = true;
@@ -112,11 +125,28 @@ export const usePricing = () => {
         hasDiscount
       };
     });
+
+    // Add the "Undefined" duration option
+    options.push({
+      value: 'undefined',
+      label: 'Undefined Duration (Open Session)', // More descriptive label
+      multiplier: 0, // Not applicable for fixed duration
+      originalPrice: workspace.price, // Base hourly price
+      discountedPrice: workspace.price, // Base hourly price, no discount
+      discount: 0,
+      hasDiscount: false
+    });
+
+    return options;
   };
 
   const calculatePrice = (workspaceTypeName: string, duration: string): number => {
     const workspace = workspaceTypes.find(w => w.name === workspaceTypeName);
     if (!workspace) return 0;
+
+    if (duration === 'undefined') {
+      return workspace.price; // Return base hourly price for undefined duration
+    }
 
     const durationOption = getDurationOptions(workspaceTypeName).find(d => d.value === duration);
     return durationOption ? durationOption.discountedPrice : 0;
@@ -133,7 +163,7 @@ export const usePricing = () => {
         discount: 0,
         hasDiscount: false,
         workspace: workspace,
-        isUndefinedDuration: true
+        isUndefinedDuration: true // Indicate this is an undefined duration
       };
     }
 
