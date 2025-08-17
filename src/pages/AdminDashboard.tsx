@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useContent } from '../hooks/useContent';
 import { supabase } from '../lib/supabase';
+import { convertDurationToHours, getHourlySlotsForBooking } from '../utils/bookingHelpers';
 import { useBooking } from '../contexts/BookingContext';
 import { Navigate, Link } from 'react-router-dom';
 import AdminBookingForm from '../components/AdminBookingForm';
@@ -604,10 +605,47 @@ useEffect(() => {
       slotBookings[slot] = 0;
     });
     
-    // Count bookings for each slot
+    // Count bookings for each slot, accounting for full duration
     todaysBookings.forEach(booking => {
-      if (slotBookings.hasOwnProperty(booking.time_slot)) {
-        slotBookings[booking.time_slot]++;
+      // Skip undefined duration bookings as they don't fit the hourly slot model
+      if (booking.duration === 'undefined') {
+        return;
+      }
+      
+      // Calculate how many hours this booking occupies
+      const durationHours = convertDurationToHours(booking.duration, hourlySlots.length);
+      
+      // Get all the time slots this booking occupies
+      const occupiedSlots = getHourlySlotsForBooking(booking.time_slot, durationHours, hourlySlots);
+      
+      // Increment the counter for each occupied slot
+      occupiedSlots.forEach(slot => {
+        if (slotBookings.hasOwnProperty(slot)) {
+          slotBookings[slot]++;
+        }
+      });
+    });
+    
+    return { slotBookings, totalDesks };
+  };
+
+  // Get today's open sessions (undefined duration bookings)
+  const getTodaysOpenSessions = () => {
+    return todaysBookings.filter(booking => booking.duration === 'undefined');
+  };
+
+  const openSessions = getTodaysOpenSessions();
+
+  // Add this helper function to get active sessions for open bookings
+  const getActiveSessionsForOpenBookings = () => {
+    return activeSessions.filter(session => 
+      session.session_type === 'booking' && 
+      session.booking && 
+      session.booking.duration === 'undefined'
+    );
+  };
+
+  const activeOpenSessions = getActiveSessionsForOpenBookings();
       }
     });
     
