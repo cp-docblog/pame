@@ -32,7 +32,7 @@ export const usePricing = () => {
   const [workspaceTypes, setWorkspaceTypes] = useState<WorkspaceType[]>([]);
   const [durationDiscounts, setDurationDiscounts] = useState<DurationDiscount[]>([]);
   const [loading, setLoading] = useState(true);
-  const [siteBookingDurations, setSiteBookingDurations] = useState<string[]>([]); // New state for site settings durations
+  const [siteBookingDurations, setSiteBookingDurations] = useState<string[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -42,7 +42,7 @@ export const usePricing = () => {
     try {
       setLoading(true);
       
-      const [workspaceResult, discountResult, siteSettingsResult] = await Promise.all([ // Added siteSettingsResult
+      const [workspaceResult, discountResult, siteSettingsResult] = await Promise.all([
         supabase
           .from('workspace_types')
           .select('id, name, price, price_unit')
@@ -52,7 +52,7 @@ export const usePricing = () => {
           .from('duration_discounts')
           .select('*')
           .eq('is_active', true),
-        supabase // Fetch site settings for booking durations
+        supabase
           .from('site_settings')
           .select('value')
           .eq('key', 'booking_durations')
@@ -61,18 +61,16 @@ export const usePricing = () => {
 
       if (workspaceResult.error) throw workspaceResult.error;
       if (discountResult.error) throw discountResult.error;
-      if (siteSettingsResult.error && siteSettingsResult.error.code !== 'PGRST116') { // Allow no rows found
+      if (siteSettingsResult.error && siteSettingsResult.error.code !== 'PGRST116') {
         console.error('Error fetching site settings for booking durations:', siteSettingsResult.error);
-        // Don't throw, use default if setting not found
       }
 
       setWorkspaceTypes(workspaceResult.data || []);
       setDurationDiscounts(discountResult.data || []);
 
-      // Parse site settings durations
       const fetchedDurations = siteSettingsResult.data?.value
         ? siteSettingsResult.data.value.split(',').map(d => d.trim()).filter(Boolean)
-        : ['1 hour', '2 hours', '3 hours', '4 hours', '5 hours', '6 hours']; // Default if not set
+        : ['1 hour', '2 hours', '3 hours', '4 hours', '5 hours', '6 hours'];
       setSiteBookingDurations(fetchedDurations);
 
     } catch (error) {
@@ -82,14 +80,19 @@ export const usePricing = () => {
     }
   };
 
-  const getDurationOptions = (workspaceTypeName: string): DurationOption[] => {
+  // Modified getDurationOptions to accept isAdminContext
+  const getDurationOptions = (workspaceTypeName: string, isAdminContext: boolean = false): DurationOption[] => {
     const workspace = workspaceTypes.find(w => w.name === workspaceTypeName);
     if (!workspace) return [];
 
-    // Use siteBookingDurations for baseDurations
-    const baseDurations = siteBookingDurations.map(durationStr => {
+    // Filter out any 'undefined' or 'undefined duration' strings from site settings
+    const filteredSiteDurations = siteBookingDurations.filter(d => 
+      d.toLowerCase() !== 'undefined' && !d.toLowerCase().includes('undefined duration')
+    );
+
+    const baseDurations = filteredSiteDurations.map(durationStr => {
       const match = durationStr.match(/(\d+)\s*hours?/i);
-      const multiplier = match ? parseInt(match[1]) : 1; // Default to 1 if parsing fails
+      const multiplier = match ? parseInt(match[1]) : 1;
       return { value: durationStr, label: durationStr.charAt(0).toUpperCase() + durationStr.slice(1), multiplier };
     });
 
@@ -126,16 +129,18 @@ export const usePricing = () => {
       };
     });
 
-    // Add the "Undefined" duration option
-    options.push({
-      value: 'undefined',
-      label: 'Undefined Duration (Open Session)', // More descriptive label
-      multiplier: 0, // Not applicable for fixed duration
-      originalPrice: workspace.price, // Base hourly price
-      discountedPrice: workspace.price, // Base hourly price, no discount
-      discount: 0,
-      hasDiscount: false
-    });
+    // Conditionally add the "Undefined" duration option only for admin context
+    if (isAdminContext) {
+      options.push({
+        value: 'undefined',
+        label: 'Undefined Duration (Open Session)',
+        multiplier: 0,
+        originalPrice: workspace.price,
+        discountedPrice: workspace.price,
+        discount: 0,
+        hasDiscount: false
+      });
+    }
 
     return options;
   };
@@ -145,9 +150,10 @@ export const usePricing = () => {
     if (!workspace) return 0;
 
     if (duration === 'undefined') {
-      return workspace.price; // Return base hourly price for undefined duration
+      return workspace.price;
     }
 
+    // Call getDurationOptions without isAdminContext for general price calculation
     const durationOption = getDurationOptions(workspaceTypeName).find(d => d.value === duration);
     return durationOption ? durationOption.discountedPrice : 0;
   };
@@ -163,10 +169,11 @@ export const usePricing = () => {
         discount: 0,
         hasDiscount: false,
         workspace: workspace,
-        isUndefinedDuration: true // Indicate this is an undefined duration
+        isUndefinedDuration: true
       };
     }
 
+    // Call getDurationOptions without isAdminContext for general price breakdown
     const durationOption = getDurationOptions(workspaceTypeName).find(d => d.value === duration);
     if (!durationOption) return null;
 
