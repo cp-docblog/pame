@@ -595,25 +595,44 @@ useEffect(() => {
     }
   };
 
-  // Today's bookings visualization
-  const getTodaysBookingsBySlot = () => {
-    const slotBookings: Record<string, number> = {};
-    const totalDesks = parseInt(getSetting('total_desks', '6'));
-    
-    // Initialize all slots with 0 bookings
-    hourlySlots.forEach(slot => {
-      slotBookings[slot] = 0;
-    });
-    
-    // Count bookings for each slot
-    todaysBookings.forEach(booking => {
-      if (slotBookings.hasOwnProperty(booking.time_slot)) {
-        slotBookings[booking.time_slot]++;
+// Today's bookings visualization
+const getTodaysBookingsBySlot = () => {
+  const slotBookings: Record<string, number> = {};
+  const totalDesks = parseInt(getSetting('total_desks', '6'));
+
+  // Initialize all slots with 0 bookings
+  hourlySlots.forEach(slot => {
+    slotBookings[slot] = 0;
+  });
+
+  // Count bookings for each slot
+  todaysBookings.forEach(booking => {
+    // Skip bookings with undefined duration (open-ended sessions)
+    if (booking.duration === 'undefined') {
+      return;
+    }
+
+    // Determine the requested duration in hours
+    const requestedDurationHours = convertDurationToHours(booking.duration, hourlySlots.length);
+
+    // Get all occupied hourly slots for this booking
+    const occupiedSlots = getHourlySlotsForBooking(
+      booking.time_slot,
+      requestedDurationHours,
+      hourlySlots
+    );
+
+    // Increment booking count for each occupied slot
+    occupiedSlots.forEach(slot => {
+      if (slotBookings.hasOwnProperty(slot)) {
+        slotBookings[slot]++;
       }
     });
-    
-    return { slotBookings, totalDesks };
-  };
+  });
+
+  return { slotBookings, totalDesks };
+};
+
 
   const getSlotColor = (bookingCount: number, totalDesks: number) => {
     if (bookingCount === 0) return 'bg-green-100 border-green-300 text-green-800';
