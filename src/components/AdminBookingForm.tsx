@@ -516,7 +516,6 @@ const createNewClient = async () => {
                       {duration.hasDiscount && ` (was E£${duration.originalPrice})`}
                     </option>
                   ))}
-                  <option value="undefined">Undefined</option> {/* New option */}
                 </select>
               </div>
             </div>
