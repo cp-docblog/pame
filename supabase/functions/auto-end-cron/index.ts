@@ -1,3 +1,4 @@
+// supabase/functions/auto-end-cron/index.ts
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -32,7 +33,7 @@ Deno.serve(async (req: Request) => {
         return parseInt(minuteMatch[1]);
       }
       
-      // Default to 60 minutes if parsing fails
+      // Default to 60 minutes if parsing fails or duration is 'undefined'
       return 60;
     };
 
@@ -70,6 +71,12 @@ Deno.serve(async (req: Request) => {
     for (const session of activeSessions || []) {
       if (!session.booking) continue;
       
+      // --- NEW: Skip auto-ending for 'undefined' duration sessions ---
+      if (session.booking.duration === 'undefined') {
+        continue; // Skip this session, it should be manually ended
+      }
+      // --- END NEW ---
+
       const startTime = new Date(session.start_time);
       const durationMinutes = convertDurationToMinutes(session.booking.duration);
       const endTime = new Date(startTime.getTime() + (durationMinutes * 60 * 1000));
