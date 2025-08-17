@@ -121,48 +121,12 @@ const AdminBookingForm: React.FC<{
     setWorkspaceTypes(allWorkspaceTypes);
   }, [allWorkspaceTypes]);
   
-  const [durations, setDurations] = useState([
-    { value: '1 hour', label: '1 Hour', multiplier: 1 },
-    { value: '2 hours', label: '2 Hours', multiplier: 2 },
-    { value: '3 hours', label: '3 Hours', multiplier: 3 },
-    { value: '4 hours', label: '4 Hours', multiplier: 4 },
-    { value: '5 hours', label: '5 Hours', multiplier: 5 },
-    { value: '6 hours', label: '6 Hours', multiplier: 6 },
-  ]);
 
   // Get duration options with pricing for selected workspace
   const durationOptionsWithPricing = formData.workspaceType ? 
     getDurationOptions(formData.workspaceType) : [];
 
-  useEffect(() => {
-    fetchBookingDurations();
-  }, []);
 
-  const fetchBookingDurations = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'booking_durations')
-        .single();
-
-      if (error) throw error;
-      
-      const durationsFromDb = data?.value ? 
-        data.value.split(',').map(d => d.trim()).filter(Boolean) :
-        ['1 hour', '2 hours', '3 hours', '4 hours', '5 hours', '6 hours'];
-      
-      const formattedDurations = durationsFromDb.map((duration, index) => ({
-        value: duration,
-        label: duration.charAt(0).toUpperCase() + duration.slice(1),
-        multiplier: index + 1
-      }));
-      
-      setDurations(formattedDurations);
-    } catch (error) {
-      console.error('Error fetching booking durations:', error);
-    }
-  };
 
   // Fetch workspace types and hourly slots
   useEffect(() => {
