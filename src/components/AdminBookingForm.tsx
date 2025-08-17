@@ -123,8 +123,8 @@ const AdminBookingForm: React.FC<{
   
 
   // Get duration options with pricing for selected workspace
-  const durationOptionsWithPricing = formData.workspaceType ? 
-    getDurationOptions(formData.workspaceType) : [];
+const durationOptionsWithPricing = formData.workspaceType ? 
+    getDurationOptions(formData.workspaceType, true) : [];
 
 
 
