@@ -94,34 +94,8 @@ const BookingPage: React.FC = () => {
 
   useEffect(() => {
     fetchWorkspaceTypes();
-    fetchBookingDurations();
   }, []);
 
-  const fetchBookingDurations = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'booking_durations')
-        .single();
-
-      if (error) throw error;
-      
-      const durationsFromDb = data?.value ? 
-        data.value.split(',').map(d => d.trim()).filter(Boolean) :
-        ['1 hour', '2 hours', '3 hours', '4 hours', '5 hours', '6 hours'];
-      
-      const formattedDurations = durationsFromDb.map((duration, index) => ({
-        value: duration,
-        label: duration.charAt(0).toUpperCase() + duration.slice(1),
-        multiplier: index + 1
-      }));
-      
-      setDurations(formattedDurations);
-    } catch (error) {
-      console.error('Error fetching booking durations:', error);
-    }
-  };
 
   // Update form data when user changes
   useEffect(() => {
